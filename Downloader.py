@@ -1,12 +1,13 @@
 from pytube import YouTube
 from pydub import AudioSegment
+import os
 
 url = input("Paste in your youtube url: ")
 video = YouTube(url)
 
 print(video.title)
 
-print("Downloading...")
+print("Downloading Highest Quality Audio...")
 
 def get_best_audio():
     previous_quality = int(0)
@@ -31,10 +32,30 @@ audio = video.streams.get_by_itag(get_best_audio())
 #Download video
 audio.download()
 
+print (" ")
+print (" Downloaded Successfully...")
+
+print (" ")
+print (" Converting to mp3...")
+
 audio_file_name = audio.title + ".webm"
 converted_audio_file_name = audio.title + ".mp3"
 
 mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
 mp3_audio.export(converted_audio_file_name, format="mp3")
 
-print ("Done")
+print (" ")
+print (" Converted Successfully...")
+
+print (" ")
+print (" Removing Original webm file...")
+
+# Removing the webm file after generating the mp3
+if (os.path.exists(audio_file_name)):
+    os.remove(audio_file_name)
+    print (" Removed Successfully")
+else:
+    print (" Could not remove webm file...")
+
+print(" ")
+input(" Done. Enter any key to close")
