@@ -2,13 +2,8 @@ from pytube import YouTube
 from pydub import AudioSegment
 import os
 
-# User inputs youtube url
-url = input(" Paste in your youtube url: ")
-video = YouTube(url)
-
-print(video.title)
-
-print(" Downloading Highest Quality Audio...")
+# Stores whether the user wants to exit or not
+exit = "0"
 
 # Finds and returns the itag corresponding to the best audio 
 # quality file from the youtube API
@@ -28,38 +23,47 @@ def get_best_audio():
     
     return best_audio_tag
 
+# Allows user to download songs repeatedly
+while ((exit != 'x') & (exit != 'X')):
+    # User inputs youtube url
+    url = input(" Paste in your youtube url: ")
+    video = YouTube(url)
 
-# Set the stream resolution to the best audio quality
-audio = video.streams.get_by_itag(get_best_audio())
+    print(video.title)
 
-# Download it
-audio.download()
+    print(" Downloading Highest Quality Audio...")
 
-print (" ")
-print (" Downloaded Successfully...")
+    # Set the stream resolution to the best audio quality
+    audio = video.streams.get_by_itag(get_best_audio())
 
-print (" ")
-print (" Converting to mp3...")
+    # Download it
+    audio.download()
 
-audio_file_name = audio.title + ".webm"
-converted_audio_file_name = audio.title + ".mp3"
+    print (" ")
+    print (" Downloaded Successfully...")
 
-# Convert the webm file to mp3
-mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
-mp3_audio.export(converted_audio_file_name, format="mp3")
+    print (" ")
+    print (" Converting to mp3...")
 
-print (" ")
-print (" Converted Successfully...")
+    audio_file_name = audio.title + ".webm"
+    converted_audio_file_name = audio.title + ".mp3"
 
-print (" ")
-print (" Removing Original webm file...")
+    # Convert the webm file to mp3
+    mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
+    mp3_audio.export(converted_audio_file_name, format="mp3")
 
-# Removing the webm file after generating the mp3
-if (os.path.exists(audio_file_name)):
-    os.remove(audio_file_name)
-    print (" Removed Successfully")
-else:
-    print (" Could not remove webm file...")
+    print (" ")
+    print (" Converted Successfully...")
 
-print(" ")
-input(" Done. Enter any key to close")
+    print (" ")
+    print (" Removing Original webm file...")
+
+    # Removing the webm file after generating the mp3
+    if (os.path.exists(audio_file_name)):
+        os.remove(audio_file_name)
+        print (" Removed Successfully")
+    else:
+        print (" Could not remove webm file...")
+
+    print(" ")
+    exit = input(" Done. Enter [x] to exit, or anything else to download another...")
