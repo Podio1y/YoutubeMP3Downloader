@@ -1,6 +1,7 @@
 from pytube import YouTube
 from pydub import AudioSegment
 import os
+import re
 
 # Stores whether the user wants to exit or not
 exit = "0"
@@ -22,6 +23,17 @@ def get_best_audio():
             previous_quality = current_quality
     
     return best_audio_tag
+
+# Removes any bad characters so that it does not search for an incorrect file name.
+# Windows will remove all non-alpanumerical characters from a file name.
+# Might improve by making it only include alphanumerical characters, rather then 
+# just removing those 8 specific common ones.
+def removeBadChars(name):
+    bad_chars = ['!', '@', '#', '$', '%', '^', '&', '*']
+    for i in bad_chars:
+        name = name.replace(i, "");
+    
+    return name
 
 # Allows user to download songs repeatedly
 while ((exit != 'x') & (exit != 'X')):
@@ -45,8 +57,9 @@ while ((exit != 'x') & (exit != 'X')):
     print (" ")
     print (" Converting to mp3...")
 
-    audio_file_name = audio.title + ".webm"
-    converted_audio_file_name = audio.title + ".mp3"
+    cleansed_title = removeBadChars(audio.title)
+    audio_file_name = cleansed_title + ".webm"
+    converted_audio_file_name = cleansed_title + ".mp3"
 
     # Convert the webm file to mp3
     mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
