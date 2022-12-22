@@ -29,11 +29,22 @@ def get_best_audio():
 # Might improve by making it only include alphanumerical characters, rather then 
 # just removing those 8 specific common ones.
 def removeBadChars(name):
-    bad_chars = ['!', '@', '#', '$', '%', '^', '&', '*']
+    # Removes all banned characters for windows file names
+    bad_chars = "/\:*?\"<>|"
+    print ("\"")
     for i in bad_chars:
         name = name.replace(i, "");
     
     return name
+
+    # ALTERNATIVE METHOD with selected allowed characters instead
+    # alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ -_"
+    # for i in name:
+    #     if (i not in alphabet):
+    #         name = name.replace(i, "")
+    
+    # return name
+
 
 # Allows user to download songs repeatedly
 while ((exit != 'x') & (exit != 'X')):
