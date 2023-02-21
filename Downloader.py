@@ -1,7 +1,9 @@
 from pytube import YouTube
 from pydub import AudioSegment
+from pathlib import Path
 import os
 import re
+import shutil
 
 # Stores whether the user wants to exit or not
 exit = "0"
@@ -87,6 +89,19 @@ while ((exit != 'x') & (exit != 'X')):
         print (" Removed Successfully")
     else:
         print (" Could not remove webm file...")
+    
+    # Moving the mp3 to music folder
+    curPath = converted_audio_file_name
+    desiredPath = "G:/YoutubeDL/" + converted_audio_file_name
+    print(" ")
+    print(" Moving MP3 to desired folder...")
+
+    if (os.path.exists(converted_audio_file_name)):
+        shutil.move(curPath, desiredPath)
+        print(" Moved Successfully")
+    else:
+        print(" Could not move to the set directory: " + desiredPath)
+    
 
     print(" ")
     exit = input(" Done. Enter [x] to exit, or anything else to download another...")
