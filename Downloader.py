@@ -4,9 +4,21 @@ from pathlib import Path
 import os
 import re
 import shutil
+import requests
+
+import eyed3
+from eyed3.id3.frames import ImageFrame
 
 # Stores whether the user wants to exit or not
 exit = "0"
+
+def get_thumbnail():
+    img = requests.get(video.thumbnail_url).content
+    thumbnail_name = cleansed_title + ".jpg"
+    with open(thumbnail_name, 'wb') as handler:
+        handler.write(img)
+
+    return thumbnail_name
 
 # Finds and returns the itag corresponding to the best audio 
 # quality file from the youtube API
@@ -50,6 +62,7 @@ def removeBadChars(name):
 # Allows user to download songs repeatedly
 while ((exit != 'x') & (exit != 'X')):
     # User inputs youtube url
+    os.system("cls")
     url = input(" Paste in your youtube url: ")
     video = YouTube(url)
 
@@ -86,6 +99,31 @@ while ((exit != 'x') & (exit != 'X')):
     # Removing the webm file after generating the mp3
     if (os.path.exists(audio_file_name)):
         os.remove(audio_file_name)
+        print (" Removed Successfully")
+    else:
+        print (" Could not remove webm file...")
+
+    # Setting the songs thumbnail
+    print(" ")
+    print (" Getting the song thumbnail...")
+    thumb_name = get_thumbnail()
+
+    audiofile = eyed3.load(converted_audio_file_name)
+    audiofile.initTag(version=(2, 3, 0))
+
+    print (" ")
+    print (" Applying the thumbnail to the mp3...")
+    audiofile.tag.images.set(3, open(thumb_name,"rb").read(), "image/jpeg", u"cover")
+
+    audiofile.tag.save()
+    print (" Applied Successfully")
+    ######################
+
+    # Removing the jpg file after adding it to the mp3
+    print (" ")
+    print (" Removing the thumbnail file...")
+    if (os.path.exists(thumb_name)):
+        os.remove(thumb_name)
         print (" Removed Successfully")
     else:
         print (" Could not remove webm file...")
