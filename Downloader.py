@@ -44,7 +44,7 @@ def get_best_audio():
 # just removing those 8 specific common ones.
 def removeBadChars(name):
     # Removes all banned characters for windows file names
-    bad_chars = "./\:*?\"<>|"
+    bad_chars = "./\:*?\"<>|'"
     for i in bad_chars:
         name = name.replace(i, "");
     
