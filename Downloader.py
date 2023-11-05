@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import requests
+import glob
 
 import eyed3
 from eyed3.id3.frames import ImageFrame
@@ -44,10 +45,14 @@ def get_best_audio():
 # just removing those 8 specific common ones.
 def removeBadChars(name):
     # Removes all banned characters for windows file names
-    bad_chars = "./\:*?\"<>|'"
+    f = open("badchars.txt", "r")
+    # bad_chars = "./\:*?\"<>|',"
+    bad_chars = f.readline()
     for i in bad_chars:
         name = name.replace(i, "");
     
+    f.close()
+
     return name
 
     # ALTERNATIVE METHOD with selected allowed characters instead
@@ -58,6 +63,10 @@ def removeBadChars(name):
     
     # return name
 
+def add_bad_char(badchar):
+    f = open("badchars.txt", "a")
+    f.write(badchar)
+    f.close()
 
 # Allows user to download songs repeatedly
 while ((exit != 'x') & (exit != 'X')):
@@ -85,6 +94,24 @@ while ((exit != 'x') & (exit != 'X')):
     cleansed_title = removeBadChars(audio.title)
     audio_file_name = cleansed_title + ".webm"
     converted_audio_file_name = cleansed_title + ".mp3"
+
+    # Check if exists, if not, dont crash lol
+    if (not os.path.isfile(audio_file_name)):
+        print("\nERROR: File doesn't exist... Likely an illegal char in the title causing this...")
+        f = glob.glob("*.webm")
+        print("\nFile in windows: \t" + f[0])
+        print("\nFile we looked for: \t" + audio_file_name)
+        for i in range(0, len(f[0]) - 1):
+            if (f[0][i] != audio_file_name[i]):
+                print("\nPotential Bad Index: " + str(i) + " Bad Char: " + str(audio_file_name[i]))
+                print("Would you like to add this to the badchars file for future reference? y = yes")
+                r = input()
+                if (r == "y"):
+                    print("Adding this to the bad chars file for future reference. Please retry...")
+                    add_bad_char(audio_file_name[i])
+                break
+        exit = input("ERROR: Enter [x] to exit, or anything else to download another...")
+        continue  
 
     # Convert the webm file to mp3
     mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
