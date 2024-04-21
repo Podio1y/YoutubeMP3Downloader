@@ -30,6 +30,9 @@ def get_best_audio():
     for stream in video.streams.filter(only_audio = True):
 
         # Removes the Kbps from the end of the string and casts to int
+        if (stream.abr == None):
+            continue
+
         current_quality = int( stream.abr[0:(len(stream.abr)-4)])
         
         # If the current quality is better, set this to the new best audio
@@ -75,12 +78,16 @@ while ((exit != 'x') & (exit != 'X')):
     url = input(" Paste in your youtube url: ")
     video = YouTube(url)
 
-    print(video.title)
+    print("Video: " + video.title + "\n")
 
     print(" Downloading Highest Quality Audio...")
 
     # Set the stream resolution to the best audio quality
-    audio = video.streams.get_by_itag(get_best_audio())
+    try:
+        audio = video.streams.get_by_itag(get_best_audio())
+    except Exception as e:
+        print("ERROR: get_by_itag - " + str(e))
+        quit()
 
     # Download it
     audio.download()
