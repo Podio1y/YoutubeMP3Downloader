@@ -1,4 +1,5 @@
-from pytube import YouTube
+# from pytube import YouTube
+from pytubefix import YouTube
 from pydub import AudioSegment
 from pathlib import Path
 import os
@@ -13,7 +14,7 @@ from eyed3.id3.frames import ImageFrame
 # Stores whether the user wants to exit or not
 exit = "0"
 
-def get_thumbnail():
+def get_thumbnail(video, cleansed_title):
     img = requests.get(video.thumbnail_url).content
     thumbnail_name = cleansed_title + ".jpg"
     with open(thumbnail_name, 'wb') as handler:
@@ -23,7 +24,7 @@ def get_thumbnail():
 
 # Finds and returns the itag corresponding to the best audio 
 # quality file from the youtube API
-def get_best_audio():
+def get_best_audio(video):
     previous_quality = int(0)
 
     # Iterates through every audio-only quality option and finds the best
@@ -39,7 +40,7 @@ def get_best_audio():
         if ( current_quality > previous_quality):
             best_audio_tag = stream.itag
             previous_quality = current_quality
-    
+ 
     return best_audio_tag
 
 # Removes any bad characters so that it does not search for an incorrect file name.
@@ -71,109 +72,121 @@ def add_bad_char(badchar):
     f.write(badchar)
     f.close()
 
-# Allows user to download songs repeatedly
-while ((exit != 'x') & (exit != 'X')):
-    # User inputs youtube url
-    os.system("cls")
-    url = input(" Paste in your youtube url: ")
-    video = YouTube(url)
+def main():
+    # os.system("cmd /k")
+    exit = '.'
+    # Allows user to download songs repeatedly
+    while ((exit != 'x') & (exit != 'X')):
+        # User inputs youtube url
+        os.system("cls")
+        url = input(" Paste in your youtube url: ")
+        video = YouTube(url, use_oauth=True, allow_oauth_cache=True)
+        # video = YouTube(url)
 
-    print("Video: " + video.title + "\n")
+        # print("Video: " + video.title + "\n")
+        try:
+            print("Video: " + video.title + "\n")
+        except Exception as e:
+            print("Error getting video title: " + str(e))
+            input("press anything to restart.")
+            continue
 
-    print(" Downloading Highest Quality Audio...")
+        print(" Downloading Highest Quality Audio...")
 
-    # Set the stream resolution to the best audio quality
-    try:
-        audio = video.streams.get_by_itag(get_best_audio())
-    except Exception as e:
-        print("ERROR: get_by_itag - " + str(e))
-        quit()
+        best = get_best_audio(video)
+        # print(best)
 
-    # Download it
-    audio.download()
+        # Set the stream resolution to the best audio quality
+        try:
+            audio = video.streams.get_by_itag(best)
+        except Exception as e:
+            print("ERROR: get_by_itag - " + str(e))
+            input("Enter anything to exit.")
+            quit()
 
-    print (" ")
-    print (" Downloaded Successfully...")
+        # Download it
+        audio.download()
 
-    print (" ")
-    print (" Converting to mp3...")
+        print (" ")
+        print (" Downloaded Successfully...")
 
-    cleansed_title = removeBadChars(audio.title)
-    audio_file_name = cleansed_title + ".webm"
-    converted_audio_file_name = cleansed_title + ".mp3"
+        print (" ")
+        print (" Converting to mp3...")
 
-    # Check if exists, if not, dont crash lol
-    if (not os.path.isfile(audio_file_name)):
-        print("\nERROR: File doesn't exist... Likely an illegal char in the title causing this...")
-        f = glob.glob("*.webm")
-        print("\nFile in windows: \t" + f[0])
-        print("\nFile we looked for: \t" + audio_file_name)
-        for i in range(0, len(f[0]) - 1):
-            if (f[0][i] != audio_file_name[i]):
-                print("\nPotential Bad Index: " + str(i) + " Bad Char: " + str(audio_file_name[i]))
-                print("Would you like to add this to the badchars file for future reference? y = yes")
-                r = input()
-                if (r == "y"):
-                    print("Adding this to the bad chars file for future reference. Please retry...")
-                    add_bad_char(audio_file_name[i])
-                break
-        exit = input("ERROR: Enter [x] to exit, or anything else to download another...")
-        continue  
+        cleansed_title = removeBadChars(audio.title)
+        audio_file_name = cleansed_title + ".webm"
+        audio_file_name_m4a = cleansed_title + ".m4a"
+        converted_audio_file_name = cleansed_title + ".mp3"
 
-    # Convert the webm file to mp3
-    mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
-    mp3_audio.export(converted_audio_file_name, format="mp3")
+        name_in_windows = glob.glob("*.m4a")[0]
 
-    print (" ")
-    print (" Converted Successfully...")
+        # Convert the webm file to mp3
+        # mp3_audio = AudioSegment.from_file(audio_file_name)#, format="webm")
+        mp3_audio = AudioSegment.from_file(name_in_windows)
+        mp3_audio.export(converted_audio_file_name, format="mp3")
 
-    print (" ")
-    print (" Removing Original webm file...")
+        print (" ")
+        print (" Converted Successfully...")
 
-    # Removing the webm file after generating the mp3
-    if (os.path.exists(audio_file_name)):
-        os.remove(audio_file_name)
-        print (" Removed Successfully")
-    else:
-        print (" Could not remove webm file...")
+        print (" ")
+        print (" Removing Original file...")
 
-    # Setting the songs thumbnail
-    print(" ")
-    print (" Getting the song thumbnail...")
-    thumb_name = get_thumbnail()
+        # Removing the webm file after generating the mp3
+        if (os.path.exists(audio_file_name)):
+            os.remove(audio_file_name)
+            print (" Removed webm Successfully")
+        else:
+            print (" Could not remove webm file...")
 
-    audiofile = eyed3.load(converted_audio_file_name)
-    audiofile.initTag(version=(2, 3, 0))
+        # print(name_in_windows)
 
-    print (" ")
-    print (" Applying the thumbnail to the mp3...")
-    audiofile.tag.images.set(3, open(thumb_name,"rb").read(), "image/jpeg", u"cover")
+        # Removing the webm file after generating the mp3
+        if (os.path.exists(name_in_windows)):
+            os.remove(name_in_windows)
+            print (" Removed m4a Successfully")
+        else:
+            print (" Could not remove m4a file...")
 
-    audiofile.tag.save()
-    print (" Applied Successfully")
-    ######################
+        # Setting the songs thumbnail
+        print(" ")
+        print (" Getting the song thumbnail...")
+        thumb_name = get_thumbnail(video, cleansed_title)
 
-    # Removing the jpg file after adding it to the mp3
-    print (" ")
-    print (" Removing the thumbnail file...")
-    if (os.path.exists(thumb_name)):
-        os.remove(thumb_name)
-        print (" Removed Successfully")
-    else:
-        print (" Could not remove webm file...")
-    
-    # Moving the mp3 to music folder
-    curPath = converted_audio_file_name
-    desiredPath = "G:/YoutubeDL/" + converted_audio_file_name
-    print(" ")
-    print(" Moving MP3 to desired folder...")
+        audiofile = eyed3.load(converted_audio_file_name)
+        audiofile.initTag(version=(2, 3, 0))
 
-    if (os.path.exists(converted_audio_file_name)):
-        shutil.move(curPath, desiredPath)
-        print(" Moved Successfully")
-    else:
-        print(" Could not move to the set directory: " + desiredPath)
-    
+        print (" ")
+        print (" Applying the thumbnail to the mp3...")
+        audiofile.tag.images.set(3, open(thumb_name,"rb").read(), "image/jpeg", u"cover")
 
-    print(" ")
-    exit = input(" Done. Enter [x] to exit, or anything else to download another...")
+        audiofile.tag.save()
+        print (" Applied Successfully")
+        ######################
+
+        # Removing the jpg file after adding it to the mp3
+        print (" ")
+        print (" Removing the thumbnail file...")
+        if (os.path.exists(thumb_name)):
+            os.remove(thumb_name)
+            print (" Removed Successfully")
+        else:
+            print (" Could not remove thumbnail file...")
+        
+        # Moving the mp3 to music folder
+        curPath = converted_audio_file_name
+        desiredPath = "G:/YoutubeDL/" + converted_audio_file_name
+        print(" ")
+        print(" Moving MP3 to desired folder...")
+
+        if (os.path.exists(converted_audio_file_name)):
+            shutil.move(curPath, desiredPath)
+            print(" Moved Successfully")
+        else:
+            print(" Could not move to the set directory: " + desiredPath)
+        
+
+        print(" ")
+        exit = input(" Done. Enter [x] to exit, or anything else to download another...")
+
+if __name__ == "__main__":
+    main()
